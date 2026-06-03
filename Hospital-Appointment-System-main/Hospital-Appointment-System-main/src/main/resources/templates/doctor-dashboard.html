@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Doctor Dashboard — MedCare HMS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div class="layout">
+
+  <div th:replace="~{fragments/sidebar :: doctor('dashboard')}"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <h1>Doctor Dashboard</h1>
+          <p th:text="'Welcome back, Dr. ' + ${doctor != null ? doctor.name : ''}">Welcome back</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a th:href="@{/doctor/slots}" class="btn btn-teal btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Manage Slots
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div th:if="${error}" class="alert alert-error">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span th:text="${error}"></span>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon teal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${totalCount}">0</div>
+            <div class="stat-label">Total Appointments</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${pendingCount}">0</div>
+            <div class="stat-label">Awaiting Action</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${approvedCount}">0</div>
+            <div class="stat-label">Approved</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Appointments -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">My Appointments</h2>
+          <span th:if="${pendingCount > 0}"
+                class="badge badge-pending"
+                th:text="${pendingCount} + ' need action'"></span>
+        </div>
+
+        <div th:if="${#lists.isEmpty(appointments)}" class="card">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3>No appointments yet</h3>
+            <p>Patient appointments will appear here once booked.</p>
+          </div>
+        </div>
+
+        <div class="card-grid" th:if="${not #lists.isEmpty(appointments)}">
+          <div class="appt-card" th:each="a : ${appointments}">
+
+            <!-- Patient info + status -->
+            <div class="appt-card-header">
+              <div>
+                <div class="appt-avatar"
+                     th:text="${a.patient != null ? #strings.toUpperCase(#strings.substring(a.patient.name,0,1)) : 'P'}">P</div>
+                <div class="appt-doctor-name"
+                     th:text="${a.patient != null ? a.patient.name : 'Unknown Patient'}">Patient</div>
+                <div class="appt-patient-sub"
+                     th:text="'Age: ' + (${a.patient != null ? a.patient.age : '-'}) + '  ·  ' + (${a.patient != null ? a.patient.gender : '-'})"></div>
+              </div>
+              <span th:class="'badge badge-' + ${a.status.name().toLowerCase()}"
+                    th:text="${a.status}">STATUS</span>
+            </div>
+
+            <div class="appt-divider"></div>
+
+            <!-- Date -->
+            <div class="appt-meta">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span th:text="${#temporals.format(a.appointmentDate, 'dd MMM yyyy, hh:mm a')}">Date</span>
+            </div>
+
+            <!-- Notes -->
+            <div class="appt-notes"
+                 th:if="${a.notes != null and !#strings.isEmpty(a.notes)}"
+                 th:text="${a.notes}">Notes</div>
+
+            <!-- Approve / Reject (PENDING only) -->
+            <div class="appt-actions" th:if="${a.status.name() == 'PENDING'}">
+              <form th:action="@{/doctor/appointment/{id}/status(id=${a.id})}" method="post">
+                <input type="hidden" name="status" value="APPROVED"/>
+                <button type="submit" class="btn btn-success btn-sm">✔ Approve</button>
+              </form>
+              <form th:action="@{/doctor/appointment/{id}/status(id=${a.id})}" method="post">
+                <input type="hidden" name="status" value="REJECTED"/>
+                <button type="submit" class="btn btn-danger btn-sm">✘ Reject</button>
+              </form>
+            </div>
+
+            <!--
+              ── Prescription action (APPROVED appointments only) ──────────────
+              prescriptionMap is a Map<Integer, Boolean> passed from DoctorController.
+              Key = appointmentId, Value = true if a prescription already exists.
+              • If exists  → show "Edit Prescription" (pencil icon, outline style)
+              • If missing → show "Write Prescription" (pen icon, teal style)
+              Either way it goes to the SAME URL; the controller decides create vs update.
+            -->
+            <div th:if="${a.status.name() == 'APPROVED'}"
+                 style="margin-top:10px; border-top:1px solid var(--border); padding-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+
+              <!-- Write Prescription (no prescription yet) -->
+              <a th:if="${prescriptionMap == null or !prescriptionMap.containsKey(a.id)}"
+                 th:href="@{/doctor/prescription/new/{id}(id=${a.id})}"
+                 class="btn btn-teal btn-sm" style="flex:1;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5
+                           m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Write Prescription
+              </a>
+
+              <!-- Edit Prescription (prescription already written) -->
+              <a th:if="${prescriptionMap != null and prescriptionMap.containsKey(a.id)}"
+                 th:href="@{/doctor/prescription/new/{id}(id=${a.id})}"
+                 class="btn btn-outline btn-sm" style="flex:1;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.232 5.232l3.536 3.536
+                           m-2.036-5.036a2.5 2.5 0 113.536 3.536
+                           L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                </svg>
+                Edit Prescription
+              </a>
+
+              <!-- View Prescription history for this patient -->
+              <a th:if="${a.patient != null}"
+                 th:href="@{/doctor/patient/{pid}/prescriptions(pid=${a.patient.id})}"
+                 class="btn btn-outline btn-sm" style="flex:1;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2
+                           h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                View Prescription
+              </a>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

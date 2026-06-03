@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title th:text="${isEdit} ? 'Edit Prescription — MedCare HMS' : 'Write Prescription — MedCare HMS'">Prescription — MedCare HMS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div class="layout">
+
+  <div th:replace="~{fragments/sidebar :: doctor('dashboard')}"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <h1 th:text="${isEdit} ? 'Edit Prescription' : 'Write Prescription'">Prescription</h1>
+          <p th:text="'For ' + ${appointment.patient.name} + ' · ' + ${#temporals.format(appointment.appointmentDate,'dd MMM yyyy')}">Patient</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a th:href="@{/doctor/dashboard}" class="btn btn-outline btn-sm">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Edit-mode notice banner -->
+      <div th:if="${isEdit}" class="alert alert-info" style="margin-bottom:20px;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="16" x2="12" y2="12"/>
+          <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+        <span>You are editing an existing prescription. Only one prescription is allowed per appointment — your changes will overwrite the current one.</span>
+      </div>
+
+      <!-- Patient info banner -->
+      <div class="profile-card" style="margin-bottom:24px;">
+        <div class="profile-avatar-lg"
+             th:text="${#strings.toUpperCase(#strings.substring(appointment.patient.name,0,1))}">P</div>
+        <div class="profile-info">
+          <h2 th:text="${appointment.patient.name}">Patient Name</h2>
+          <p th:text="'Age ' + ${appointment.patient.age} + '  ·  ' + ${appointment.patient.gender} + '  ·  ' + ${appointment.patient.phone}">Details</p>
+        </div>
+      </div>
+
+      <!-- Prescription Form -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title" th:text="${isEdit} ? 'Edit Prescription Details' : 'Prescription Details'">Prescription Details</h2>
+          <!-- Prescribed date badge when editing -->
+          <span th:if="${isEdit and prescription.prescribedDate != null}"
+                class="badge"
+                style="background:var(--teal-light);color:var(--teal-dark);"
+                th:text="'Originally written: ' + ${#temporals.format(prescription.prescribedDate,'dd MMM yyyy')}">
+          </span>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <form method="post" th:action="@{/doctor/prescription/save}">
+              <input type="hidden" name="appointmentId" th:value="${appointment.id}"/>
+
+              <div class="form-group">
+                <label for="diagnosis">Diagnosis</label>
+                <input type="text" id="diagnosis" name="diagnosis"
+                       th:value="${prescription.diagnosis}"
+                       placeholder="e.g. Acute pharyngitis, Type-2 Diabetes" required/>
+              </div>
+
+              <div class="form-group">
+                <label for="medicines">Medicines</label>
+                <textarea id="medicines" name="medicines" rows="4"
+                          placeholder="e.g. Paracetamol 500mg ×3 daily&#10;Amoxicillin 250mg ×2 daily for 5 days"
+                          required
+                          th:text="${prescription.medicines}"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="instructions">Additional Instructions
+                  <span style="text-transform:none;font-weight:400;color:var(--text-muted)">(optional)</span>
+                </label>
+                <textarea id="instructions" name="instructions" rows="3"
+                          placeholder="e.g. Take after meals. Drink plenty of water. Follow-up in 1 week."
+                          th:text="${prescription.instructions}"></textarea>
+              </div>
+
+              <div style="display:flex; gap:10px; margin-top:8px;">
+                <button type="submit" class="btn btn-teal">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                       fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  <span th:text="${isEdit} ? 'Update Prescription' : 'Save Prescription'">Save</span>
+                </button>
+                <a th:href="@{/doctor/dashboard}" class="btn btn-outline">Cancel</a>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prescription Detail — MedCare HMS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+  <style>
+    .rx-header {
+      background: var(--navy);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      color: var(--white);
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .rx-header::after {
+      content:'';position:absolute;right:-40px;top:-40px;
+      width:200px;height:200px;border-radius:50%;
+      background:radial-gradient(circle,rgba(0,201,167,.18) 0%,transparent 70%);
+      pointer-events:none;
+    }
+    .rx-header h2 { font-family:'Sora',sans-serif;font-size:1.3rem;font-weight:700;margin-bottom:6px; }
+    .rx-header p  { font-size:0.82rem;color:rgba(255,255,255,.55); }
+    .rx-section { margin-bottom:20px; }
+    .rx-section label {
+      font-size:0.72rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.5px;color:var(--text-muted);display:block;margin-bottom:8px;
+    }
+    .rx-box {
+      background:var(--surface-2);border:1px solid var(--border);
+      border-radius:var(--radius-sm);padding:14px 16px;
+      font-size:0.88rem;color:var(--text-primary);
+      white-space:pre-line;line-height:1.7;
+    }
+    .rx-medicines {
+      border-left:4px solid var(--teal);
+    }
+    .rx-meta-row {
+      display:flex;gap:24px;flex-wrap:wrap;margin-bottom:20px;
+    }
+    .rx-meta-item { flex:1;min-width:140px; }
+    .rx-meta-item label {
+      font-size:0.72rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.5px;color:var(--text-muted);display:block;margin-bottom:4px;
+    }
+    .rx-meta-item span { font-size:0.9rem;font-weight:500;color:var(--text-primary); }
+    @media print {
+      .sidebar, .appt-actions, .back-btn { display:none !important; }
+      .content { padding: 0 !important; }
+      .rx-header { background: #0d2137 !important; -webkit-print-color-adjust:exact; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- Sidebar -->
+   <div th:replace="~{fragments/sidebar :: patient('dashboard')}">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+      </div>
+      <span>MedCare HMS</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a th:href="@{/patient/dashboard}" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a th:href="@{/patient/book}" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Book Appointment
+      </a>
+      <a th:href="@{/patient/prescriptions}" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414A1 1 0 0120 9.414V19a2 2 0 01-2 2z"/></svg>
+        My Prescriptions
+      </a>
+    </nav>
+    <form th:action="@{/logout}" method="post" style="margin-top:auto;padding:16px;">
+      <button type="submit" class="btn btn-ghost" style="width:100%;justify-content:flex-start;gap:10px;color:var(--text-muted);">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+        Sign Out
+      </button>
+    </form>
+  </div>
+
+  <!-- Main Content -->
+  <main class="content">
+    <div class="content-header back-btn">
+      <a th:href="@{/patient/prescriptions}" class="btn btn-ghost">← Back to Prescriptions</a>
+      <button onclick="window.print()" class="btn btn-ghost">
+        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print
+      </button>
+    </div>
+
+    <!-- Header Card -->
+    <div class="rx-header">
+      <h2>MedCare HMS — Prescription</h2>
+      <p>Prescription ID: #<span th:text="${prescription.id}"></span> &nbsp;·&nbsp; Issued: <span th:text="${prescription.issuedDate}"></span></p>
+    </div>
+
+    <div class="card" style="max-width:720px;">
+
+      <!-- Meta info row -->
+      <div class="rx-meta-row">
+        <div class="rx-meta-item">
+          <label>Patient</label>
+          <span th:text="${prescription.appointment.patient.name}"></span>
+        </div>
+        <div class="rx-meta-item">
+          <label>Doctor</label>
+          <span th:text="'Dr. ' + ${prescription.appointment.doctor.name}"></span>
+        </div>
+        <div class="rx-meta-item">
+          <label>Specialization</label>
+          <span th:text="${prescription.appointment.doctor.specialization}"></span>
+        </div>
+        <div class="rx-meta-item">
+          <label>Appointment Date</label>
+          <span th:text="${#temporals.format(prescription.appointment.appointmentDate, 'dd MMM yyyy, hh:mm a')}"></span>
+        </div>
+      </div>
+
+      <div class="appt-divider"></div>
+
+      <!-- Diagnosis -->
+      <div class="rx-section">
+        <label>Diagnosis</label>
+        <div class="rx-box" th:text="${prescription.diagnosis}"></div>
+      </div>
+
+      <!-- Medicines -->
+      <div class="rx-section">
+        <label>Medicines &amp; Dosage</label>
+        <div class="rx-box rx-medicines" th:text="${prescription.medicines}"></div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="rx-section" th:if="${prescription.instructions != null and !prescription.instructions.isEmpty()}">
+        <label>Instructions / Advice</label>
+        <div class="rx-box" th:text="${prescription.instructions}"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

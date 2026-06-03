@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Appointments — MedCare HMS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div class="layout">
+
+  <div th:replace="~{fragments/sidebar :: admin('appointments')}"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <h1>All Appointments</h1>
+          <p>Complete appointment history across all patients and doctors</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <div class="card">
+          <div th:if="${appointments == null or #lists.isEmpty(appointments)}" class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <h3>No appointments found</h3>
+            <p>Appointments will appear here once patients book them.</p>
+          </div>
+          <div th:if="${appointments != null and not #lists.isEmpty(appointments)}" class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Patient</th>
+                  <th>Doctor</th>
+                  <th>Specialization</th>
+                  <th>Date &amp; Time</th>
+                  <th>Status</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="a : ${appointments}">
+                  <td style="color:var(--text-muted);font-size:0.8rem;" th:text="${a.id}">-</td>
+                  <td style="font-weight:600;" th:text="${a.patient != null ? a.patient.name : '—'}">-</td>
+                  <td th:text="${a.doctor != null ? a.doctor.name : '—'}">-</td>
+                  <td>
+                    <span th:if="${a.doctor != null}" class="badge badge-doctor" th:text="${a.doctor.specialization}"></span>
+                  </td>
+                  <td style="font-size:0.85rem;" th:text="${a.appointmentDate != null ? #temporals.format(a.appointmentDate, 'dd MMM yyyy, HH:mm') : '—'}">-</td>
+                  <td>
+                    <span class="badge"
+                          th:classappend="${a.status.name() == 'PENDING'} ? ' badge-pending' : (${a.status.name() == 'APPROVED'} ? ' badge-approved' : ' badge-rejected')"
+                          th:text="${a.status}"></span>
+                  </td>
+                  <td style="font-size:0.82rem;color:var(--text-secondary);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                      th:text="${a.notes != null ? a.notes : '—'}">-</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

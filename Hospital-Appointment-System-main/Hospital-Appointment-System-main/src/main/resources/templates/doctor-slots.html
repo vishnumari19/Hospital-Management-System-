@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Time Slots — MedCare HMS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+<div class="layout">
+
+  <div th:replace="~{fragments/sidebar :: doctor('slots')}"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <h1>My Time Slots</h1>
+          <p>Set your available hours for patient appointments</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Add New Slot -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Add New Slot</h2>
+        </div>
+        <div class="card">
+          <div class="card-body">
+            <form method="post" th:action="@{/doctor/slots/add}">
+              <div style="display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:16px; align-items:flex-end;">
+                <div class="form-group" style="margin:0;">
+                  <label>Day of Week</label>
+                  <select name="dayOfWeek" required>
+                    <option value="">-- Select Day --</option>
+                    <option value="MONDAY">Monday</option>
+                    <option value="TUESDAY">Tuesday</option>
+                    <option value="WEDNESDAY">Wednesday</option>
+                    <option value="THURSDAY">Thursday</option>
+                    <option value="FRIDAY">Friday</option>
+                    <option value="SATURDAY">Saturday</option>
+                    <option value="SUNDAY">Sunday</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label>Start Time</label>
+                  <input type="time" name="startTime" required/>
+                </div>
+                <div class="form-group" style="margin:0;">
+                  <label>End Time</label>
+                  <input type="time" name="endTime" required/>
+                </div>
+                <div>
+                  <button type="submit" class="btn btn-teal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Add Slot
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Slots -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Current Slots</h2>
+          <span th:if="${not #lists.isEmpty(slots)}" class="badge badge-teal"
+                style="background:var(--teal-light);color:var(--teal-dark);"
+                th:text="${#lists.size(slots)} + ' slot(s)'"></span>
+        </div>
+        <div class="card">
+          <div th:if="${#lists.isEmpty(slots)}" class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            </div>
+            <h3>No slots added yet</h3>
+            <p>Add your first availability slot above so patients can book you.</p>
+          </div>
+          <div th:if="${not #lists.isEmpty(slots)}" class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Day</th><th>Start Time</th><th>End Time</th><th>Action</th></tr>
+              </thead>
+              <tbody>
+                <tr th:each="slot : ${slots}">
+                  <td style="font-weight:600;" th:text="${slot.dayOfWeek}"></td>
+                  <td th:text="${#temporals.format(slot.startTime, 'hh:mm a')}"></td>
+                  <td th:text="${#temporals.format(slot.endTime, 'hh:mm a')}"></td>
+                  <td>
+                    <form th:action="@{/doctor/slots/delete/{id}(id=${slot.id})}" method="post">
+                      <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Patient Dashboard — MedCare HMS</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}"/>
+  <style>
+    /* ── Inline prescription preview card ───────────────────── */
+    .rx-preview {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-xs);
+      position: relative;
+      transition: box-shadow var(--transition);
+    }
+    .rx-preview:hover { box-shadow: var(--shadow-md); }
+    .rx-preview::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 4px;
+      background: var(--teal);
+      border-radius: var(--radius) 0 0 var(--radius);
+    }
+    .rx-preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .rx-preview-doctor { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
+    .rx-preview-spec   { font-size: 0.75rem; color: var(--text-muted); }
+    .rx-preview-date   { font-size: 0.75rem; color: var(--text-muted); }
+    .rx-preview-diag   { font-size: 0.85rem; font-weight: 500; color: var(--text-secondary);
+                         margin-bottom: 6px; }
+    .rx-preview-meds   { font-size: 0.82rem; color: var(--text-secondary);
+                         white-space: pre-wrap; line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <div th:replace="~{fragments/sidebar :: patient('dashboard')}"></div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">
+          <h1>My Dashboard</h1>
+          <p th:text="'Hello, ' + ${patient != null ? patient.name : 'Patient'} + '!'">Hello!</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a th:href="@{/patient/book}" class="btn btn-teal btn-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+               fill="none" stroke="currentColor" stroke-width="2.2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Book Appointment
+        </a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div th:if="${error}" class="alert alert-error">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span th:text="${error}"></span>
+      </div>
+
+      <!-- ── Stats ─────────────────────────────────────────────────────── -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${totalCount}">0</div>
+            <div class="stat-label">Total Appointments</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon amber">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${pendingCount}">0</div>
+            <div class="stat-label">Pending</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${approvedCount}">0</div>
+            <div class="stat-label">Approved</div>
+          </div>
+        </div>
+        <!-- Prescription count stat -->
+        <div class="stat-card">
+          <div class="stat-icon teal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+          </div>
+          <div class="stat-body">
+            <div class="stat-value" th:text="${prescriptionCount}">0</div>
+            <div class="stat-label">Prescriptions</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Appointments ─────────────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">My Appointments</h2>
+          <a th:href="@{/patient/book}" class="btn btn-ghost btn-sm">+ Book New</a>
+        </div>
+
+        <div th:if="${#lists.isEmpty(appointments)}" class="card">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <h3>No appointments yet</h3>
+            <p>Book a consultation with one of our doctors.</p>
+            <a th:href="@{/patient/book}" class="btn btn-teal">Book your first appointment</a>
+          </div>
+        </div>
+
+        <div class="card-grid" th:if="${not #lists.isEmpty(appointments)}">
+          <div class="appt-card" th:each="a : ${appointments}">
+            <div class="appt-card-header">
+              <div>
+                <div class="appt-avatar"
+                     th:text="${a.doctor != null ? #strings.toUpperCase(#strings.substring(a.doctor.name,0,1)) : 'D'}">D</div>
+                <div class="appt-doctor-name"
+                     th:text="'Dr. ' + (${a.doctor != null ? a.doctor.name : 'Unknown'})">Dr. Name</div>
+                <div class="appt-spec"
+                     th:text="${a.doctor != null ? a.doctor.specialization : ''}">Specialization</div>
+              </div>
+              <span th:class="'badge badge-' + ${a.status.name().toLowerCase()}"
+                    th:text="${a.status}">STATUS</span>
+            </div>
+            <div class="appt-divider"></div>
+            <div class="appt-meta">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <span th:text="${#temporals.format(a.appointmentDate, 'dd MMM yyyy, hh:mm a')}">Date</span>
+            </div>
+            <div class="appt-notes"
+                 th:if="${a.notes != null and !#strings.isEmpty(a.notes)}"
+                 th:text="${a.notes}">Notes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Prescription History ─────────────────────────────────────── -->
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Prescription History</h2>
+          <a th:href="@{/patient/prescriptions}" class="btn btn-ghost btn-sm">View All →</a>
+        </div>
+
+        <!-- Empty State -->
+        <div th:if="${#lists.isEmpty(recentPrescriptions)}" class="card">
+          <div class="empty-state">
+            <div class="empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+            </div>
+            <h3>No prescriptions yet</h3>
+            <p>Prescriptions from your doctors will appear here.</p>
+          </div>
+        </div>
+
+        <!-- Preview Cards (latest 3) -->
+        <div th:if="${not #lists.isEmpty(recentPrescriptions)}">
+          <div class="rx-preview" th:each="rx : ${recentPrescriptions}">
+            <div class="rx-preview-header">
+              <div>
+                <div class="rx-preview-doctor"
+                     th:text="'Dr. ' + (${rx.doctor != null ? rx.doctor.name : 'Unknown'})">Dr. Name</div>
+                <div class="rx-preview-spec"
+                     th:text="${rx.doctor != null ? rx.doctor.specialization : ''}">Specialization</div>
+              </div>
+              <div class="rx-preview-date"
+                   th:text="${#temporals.format(rx.prescribedDate, 'dd MMM yyyy')}">Date</div>
+            </div>
+            <div class="rx-preview-diag"
+                 th:if="${rx.diagnosis != null and !#strings.isEmpty(rx.diagnosis)}"
+                 th:text="'🩺 ' + ${rx.diagnosis}">Diagnosis</div>
+            <div class="rx-preview-meds" th:text="${rx.medicines}">Medicines</div>
+          </div>
+
+          <div style="text-align:center; margin-top:6px;">
+            <a th:href="@{/patient/prescriptions}" class="btn btn-outline btn-sm">
+              View Full Prescription History
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>
