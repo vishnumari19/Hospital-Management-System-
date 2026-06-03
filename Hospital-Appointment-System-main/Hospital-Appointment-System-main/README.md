@@ -106,8 +106,7 @@ src/
 
 ### 1️⃣ Clone the repository
 ```bash
-git clone https://github.com/NAVEEN170804/Hospital-Appointment-System.git
-```
+git clone https://github.com/vishnumari19/Hospital-Management-System.git
 
 ### 2️⃣ Create Database
 ```sql
@@ -195,16 +194,5 @@ Password : admin123
 - Online payment integration  
 - QR code-based appointment system  
 - Advanced analytics dashboard  
-
----
-
-## 👨‍💻 Author
-
-**Naveen A**  
-📧 naveena170804@gmail.com  
-🐙 https://github.com/NAVEEN170804  
-🌐 https://naveen170804.github.io/Portfolio  
-
----
 
 ⭐ If you like this project, give it a star on GitHub!
